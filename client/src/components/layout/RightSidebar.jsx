@@ -40,7 +40,7 @@ export default function RightSidebar() {
                 {community.name.charAt(0).toUpperCase()}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-semibold">t/{community.name}</span>
+                <span className="block truncate text-sm font-semibold">{community.title || community.name}</span>
                 <span className="block text-xs text-muted">{community.members.toLocaleString()} members</span>
               </span>
               <span className="text-xs font-medium text-muted">#{index + 1}</span>
@@ -54,7 +54,7 @@ export default function RightSidebar() {
           {discussions.map((post) => (
             <Link key={post.id} to={`/post/${post.id}`} className="group block">
               <p className="text-sm font-semibold leading-5 transition group-hover:text-primary">{post.title}</p>
-              <p className="mt-1 text-xs text-muted">t/{post.community} · {post.commentCount} comments</p>
+              <p className="mt-1 text-xs text-muted">{post.community} · {post.commentCount} replies</p>
             </Link>
           ))}
         </div>

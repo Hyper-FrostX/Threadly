@@ -1,22 +1,23 @@
 import { randomUUID } from 'node:crypto'
-import { communities } from '../data/sampleData.js'
+import { communitiesRepository } from '../repositories/platformRepository.js'
 import { httpError } from '../utils/httpError.js'
 
 function present(community, userId) {
+  if (!community) return null
   const { members, ...data } = community
   return {
     ...data,
     memberCount: members.length,
-    joined: userId ? members.includes(userId) : undefined,
+    joined: userId ? members.includes(userId) : false,
   }
 }
 
 export function listCommunities(userId) {
-  return communities.map((community) => present(community, userId))
+  return communitiesRepository.list().map((community) => present(community, userId))
 }
 
 export function findCommunity(communityId) {
-  const community = communities.find((item) => item.id === communityId || item.name === communityId)
+  const community = communitiesRepository.find(communityId)
   if (!community) throw httpError(404, 'COMMUNITY_NOT_FOUND', 'Community not found.')
   return community
 }
@@ -26,31 +27,36 @@ export function getCommunity(communityId, userId) {
 }
 
 export function createCommunity({ name, title, description }, userId) {
-  if (communities.some((community) => community.name === name)) {
+  const normalizedName = name.trim().toLowerCase()
+  if (communitiesRepository.find(normalizedName)) {
     throw httpError(409, 'COMMUNITY_EXISTS', 'A community with that name already exists.')
   }
-  const community = {
-    id: `community-${randomUUID()}`,
-    name,
-    title: title.trim(),
-    description: description.trim(),
-    about: description.trim(),
-    members: [userId],
-    color: '#FF5A36',
-    createdAt: new Date().toISOString(),
+  const createdAt = new Date().toISOString()
+  try {
+    return present(communitiesRepository.insert({
+      id: `community-${randomUUID()}`,
+      name: normalizedName,
+      title: title.trim(),
+      description: description.trim(),
+      about: description.trim(),
+      members: [userId],
+      color: '#AD624E',
+      createdAt,
+    }), userId)
+  } catch (error) {
+    if (error.code === 'ERR_SQLITE_CONSTRAINT_UNIQUE') {
+      throw httpError(409, 'COMMUNITY_EXISTS', 'A community with that name already exists.')
+    }
+    throw error
   }
-  communities.unshift(community)
-  return present(community, userId)
 }
 
 export function joinCommunity(communityId, userId) {
   const community = findCommunity(communityId)
-  if (!community.members.includes(userId)) community.members.push(userId)
-  return present(community, userId)
+  return present(communitiesRepository.join(community.id, userId), userId)
 }
 
 export function leaveCommunity(communityId, userId) {
   const community = findCommunity(communityId)
-  community.members = community.members.filter((id) => id !== userId)
-  return present(community, userId)
+  return present(communitiesRepository.leave(community.id, userId), userId)
 }

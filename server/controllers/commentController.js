@@ -2,7 +2,7 @@ import * as postService from '../services/postService.js'
 import { sendData } from '../utils/response.js'
 
 export function listComments(req, res) {
-  return sendData(res, postService.getPostComments(req.params.postId))
+  return sendData(res, postService.getPostComments(req.params.postId, req.auth?.userId))
 }
 
 export function createComment(req, res) {
@@ -25,4 +25,12 @@ export function createReply(req, res) {
 export function deleteComment(req, res) {
   postService.deleteComment(req.params.commentId, req.auth.userId)
   return res.status(204).end()
+}
+
+export function updateComment(req, res) {
+  return sendData(res, postService.updateComment(req.params.commentId, req.body.body, req.auth.userId))
+}
+
+export function voteComment(req, res) {
+  return sendData(res, postService.voteComment(req.params.commentId, req.auth.userId, req.body.value))
 }

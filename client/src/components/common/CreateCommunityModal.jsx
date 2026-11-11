@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useThreadly } from '../../context/ThreadlyContext.jsx'
-import { createCommunity } from '../../services/communityService.js'
-import { ApiError } from '../../services/api.js'
 import Modal from './Modal.jsx'
 
 export default function CreateCommunityModal() {
-  const { communities, setCreateCommunityOpen } = useThreadly()
+  const { communities, createCommunity, setCreateCommunityOpen } = useThreadly()
   const [name, setName] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -26,12 +24,11 @@ export default function CreateCommunityModal() {
     }
     try {
       const community = await createCommunity({ name: slug, title, description })
+      if (!community) return
       setCreateCommunityOpen(false)
       navigate(`/c/${community.name}`)
     } catch (requestError) {
-      setError(requestError instanceof ApiError && requestError.code === 'AUTH_NOT_CONFIGURED'
-        ? 'Sign in required: creating communities is unavailable until authentication is implemented.'
-        : requestError.message)
+      setError(requestError.message || 'The space could not be created.')
     }
   }
 
@@ -41,8 +38,7 @@ export default function CreateCommunityModal() {
         <label className="form-label">
           Community name
           <span className="relative block">
-            <span className="absolute left-3 top-2.5 text-sm text-muted">t/</span>
-            <input className="form-control pl-8" value={name} onChange={(event) => setName(event.target.value)} maxLength={32} placeholder="yourcommunity" required />
+            <input className="form-control" value={name} onChange={(event) => setName(event.target.value)} maxLength={32} placeholder="yourcommunity" required />
           </span>
         </label>
         <label className="form-label">

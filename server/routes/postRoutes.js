@@ -1,12 +1,14 @@
 import { Router } from 'express'
 import * as commentController from '../controllers/commentController.js'
 import * as postController from '../controllers/postController.js'
-import { requireAuth } from '../middleware/authorization.js'
+import { optionalAuth, requireAuth } from '../middleware/authorization.js'
 import { validateBody, validators } from '../middleware/validate.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 
 const router = Router()
 
+router.use(optionalAuth)
+router.get('/saved', requireAuth, asyncHandler(postController.listSavedPosts))
 router.get('/', asyncHandler(postController.listPosts))
 router.post('/', validateBody(validators.post), requireAuth, asyncHandler(postController.createPost))
 router.get('/:postId/comments', asyncHandler(commentController.listComments))

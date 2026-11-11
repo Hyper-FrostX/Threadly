@@ -1,29 +1,32 @@
-import { ArrowBigUp, CornerDownRight, Reply } from 'lucide-react'
+import { CornerDownRight, Heart, Reply } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useThreadly } from '../../context/ThreadlyContext.jsx'
 import Avatar from '../common/Avatar.jsx'
 import { formatRelativeTime } from '../../utils/formatTime.js'
 
-export default function CommentThread({ comment, comments, postId, depth = 0 }) {
-  const { addComment } = useThreadly()
+export default function CommentThread({ comment, comments, postId, depth = 0, onCommentAdded }) {
+  const { addComment, voteComment } = useThreadly()
   const [replyOpen, setReplyOpen] = useState(false)
   const [body, setBody] = useState('')
   const [error, setError] = useState('')
-  const author = comment.author || 'member'
+  const author = typeof comment.author === 'string'
+    ? comment.author
+    : comment.author?.username || 'member'
   const replies = comments.filter((item) => item.parentCommentId === comment.id)
 
-  function submitReply(event) {
+  async function submitReply(event) {
     event.preventDefault()
     if (body.trim().length < 2) {
       setError('Replies need at least 2 characters.')
       return
     }
-    const reply = addComment(postId, body, comment.id)
+    const reply = await addComment(postId, body, comment.id)
     if (reply) {
       setBody('')
       setError('')
       setReplyOpen(false)
+      onCommentAdded?.()
     } else {
       setError('Could not add that reply.')
     }
@@ -35,19 +38,21 @@ export default function CommentThread({ comment, comments, postId, depth = 0 }) 
         <Avatar name={author} size="sm" />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 text-xs">
-            <Link to={`/profile/${author}`} className="font-bold hover:text-primary">u/{author}</Link>
+            <Link to={`/profile/${author}`} className="font-bold hover:text-primary">{comment.author?.displayName || author}</Link>
             <time className="text-muted" dateTime={comment.createdAt}>{formatRelativeTime(comment.createdAt)}</time>
           </div>
           <p className="mt-1.5 whitespace-pre-line text-sm leading-6 text-muted">{comment.body}</p>
           <div className="mt-2 flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 text-xs text-muted"><ArrowBigUp size={14} /> {comment.score || 0}</span>
+            <button type="button" className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted transition hover:bg-background hover:text-primary ${comment.userVote === 1 ? 'text-primary' : ''}`} onClick={async () => { await voteComment(comment.id, 1, comment.userVote); onCommentAdded?.() }} aria-label="Appreciate reply" aria-pressed={comment.userVote === 1}>
+              <Heart size={14} fill={comment.userVote === 1 ? 'currentColor' : 'none'} /> {comment.score || 0}
+            </button>
             <button type="button" className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-muted hover:bg-background hover:text-primary" onClick={() => setReplyOpen((open) => !open)}>
               <Reply size={13} /> Reply
             </button>
           </div>
           {replyOpen ? (
             <form className="mt-3" onSubmit={submitReply}>
-              <textarea className="form-control min-h-20 resize-y" value={body} onChange={(event) => setBody(event.target.value)} maxLength={2000} placeholder={`Reply to u/${author}...`} aria-label={`Reply to ${author}`} />
+              <textarea className="form-control min-h-20 resize-y" value={body} onChange={(event) => setBody(event.target.value)} maxLength={2000} placeholder={`Reply to ${author}...`} aria-label={`Reply to ${author}`} />
               {error ? <p className="mt-1 text-xs text-red-600" role="alert">{error}</p> : null}
               <div className="mt-2 flex justify-end gap-2">
                 <button type="button" className="button-secondary h-8 px-3 text-xs" onClick={() => setReplyOpen(false)}>Cancel</button>
@@ -55,7 +60,7 @@ export default function CommentThread({ comment, comments, postId, depth = 0 }) 
               </div>
             </form>
           ) : null}
-          {replies.map((reply) => <CommentThread key={reply.id} comment={reply} comments={comments} postId={postId} depth={depth + 1} />)}
+          {replies.map((reply) => <CommentThread key={reply.id} comment={reply} comments={comments} postId={postId} depth={depth + 1} onCommentAdded={onCommentAdded} />)}
         </div>
       </div>
     </article>

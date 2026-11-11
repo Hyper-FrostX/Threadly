@@ -14,13 +14,13 @@ export default function EditPostModal() {
 
   if (!post) return null
 
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault()
     if (title.trim().length < 5 || body.trim().length < 10 || !community) {
       setError('Add a title, description, and community before saving.')
       return
     }
-    if (editPost(post.id, { title, body, community, image })) setEditingPostId(null)
+    if (await editPost(post.id, { title, body, community, image })) setEditingPostId(null)
   }
 
   return (
@@ -28,7 +28,7 @@ export default function EditPostModal() {
       <form className="space-y-4" onSubmit={submit}>
         <label className="form-label">Community
           <select className="form-control" value={community} onChange={(event) => setCommunity(event.target.value)} required>
-            {communities.map((item) => <option key={item.id || item.name} value={item.name}>t/{item.name}</option>)}
+            {communities.map((item) => <option key={item.id || item.name} value={item.name}>{item.title || item.name}</option>)}
           </select>
         </label>
         <label className="form-label">Title

@@ -2,7 +2,7 @@ import { MessageCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { APP_NAME } from '../../utils/constants.js'
 
-export default function Logo({ compact = false, onClick }) {
+export default function Logo({ compact = false, hideTagline = false, onClick }) {
   return (
     <Link
       to="/"
@@ -15,9 +15,11 @@ export default function Logo({ compact = false, onClick }) {
       {compact ? null : (
         <span className="text-[17px]">
           {APP_NAME}
-          <span className="block text-[11px] font-medium tracking-normal text-muted">
-            Communities first
-          </span>
+          {hideTagline ? null : (
+            <span className="block text-[11px] font-medium tracking-normal text-muted">
+              Good things, together
+            </span>
+          )}
         </span>
       )}
     </Link>

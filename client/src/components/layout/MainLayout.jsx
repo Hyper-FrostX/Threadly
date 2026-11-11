@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { NavLink } from 'react-router-dom'
 import { useState } from 'react'
+import { Bookmark, Compass, Home, Sparkles, Users } from 'lucide-react'
 import CreateCommunityModal from '../common/CreateCommunityModal.jsx'
 import EditPostModal from '../common/EditPostModal.jsx'
 import CreatePostModal from '../common/CreatePostModal.jsx'
@@ -52,9 +53,18 @@ export default function MainLayout() {
         </main>
         <RightSidebar />
       </div>
-      <nav className="mobile-nav fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t border-line bg-surface/95 px-2 py-2 backdrop-blur lg:hidden">
-        {[['/', 'Home'], ['/popular', 'Popular'], ['/explore', 'Explore'], ['/communities', 'Communities'], ['/saved', 'Saved']].map(([to, label]) => (
-          <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => `mobile-nav-link ${isActive ? 'mobile-nav-active' : ''}`}>{label}</NavLink>
+      <nav className="mobile-nav fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t border-line bg-surface/95 px-2 py-2 backdrop-blur lg:hidden" aria-label="Primary navigation">
+        {[
+          ['/', 'Home', Home],
+          ['/popular', 'Popular', Sparkles],
+          ['/explore', 'Explore', Compass],
+          ['/communities', 'Spaces', Users],
+          ['/saved', 'Saved', Bookmark],
+        ].map(([to, label, Icon]) => (
+          <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => `mobile-nav-link ${isActive ? 'mobile-nav-active' : ''}`}>
+            <Icon size={16} aria-hidden="true" />
+            <span>{label}</span>
+          </NavLink>
         ))}
       </nav>
       {createPostOpen ? <CreatePostModal /> : null}

@@ -1,25 +1,19 @@
-import { httpError } from '../utils/httpError.js'
+import * as authService from '../services/authService.js'
+import { sendData } from '../utils/response.js'
 
-export function register(_req, _res) {
-  throw httpError(
-    501,
-    'AUTH_NOT_CONFIGURED',
-    'Registration is not available until persistent users, password hashing, and JWT authentication are configured.',
-  )
+export function register(req, res) {
+  return sendData(res, authService.register(req.body), 201)
 }
 
-export function login(_req, _res) {
-  throw httpError(
-    501,
-    'AUTH_NOT_CONFIGURED',
-    'Login is not available until persistent users, password hashing, and JWT authentication are configured.',
-  )
+export function login(req, res) {
+  return sendData(res, authService.login(req.body))
 }
 
-export function me(_req, _res) {
-  throw httpError(
-    501,
-    'AUTH_NOT_CONFIGURED',
-    'Current-user lookup is not available until JWT authentication is configured.',
-  )
+export function me(req, res) {
+  return sendData(res, authService.getCurrentUser(req.auth.userId))
+}
+
+export function logout(req, res) {
+  authService.logout(req.auth.userId, req.auth.sessionId)
+  return res.status(204).end()
 }

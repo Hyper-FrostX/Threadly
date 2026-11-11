@@ -13,7 +13,8 @@ function normalizePost(post) {
     author: author?.username ?? post.author,
     authorProfile: author,
     commentCount: post.commentCount ?? 0,
-    userVote: 0,
+    userVote: post.userVote ?? 0,
+    bookmarked: post.bookmarked ?? false,
   }
 }
 
@@ -34,6 +35,11 @@ export async function getPost(postId) {
 export async function getPostComments(postId) {
   const response = await api.get(`/posts/${encodeURIComponent(postId)}/comments`)
   return unwrapResponse(response)
+}
+
+export async function getSavedPosts() {
+  const response = await api.get('/posts/saved')
+  return unwrapResponse(response).map(normalizePost)
 }
 
 export async function createPost(payload) {
@@ -60,7 +66,15 @@ export async function toggleBookmark(postId) {
   return normalizePost(unwrapResponse(response))
 }
 
-export async function createComment(postId, body) {
-  const response = await api.post(`/posts/${encodeURIComponent(postId)}/comments`, { body })
+export async function createComment(postId, body, parentCommentId) {
+  const endpoint = parentCommentId
+    ? `/comments/${encodeURIComponent(parentCommentId)}/replies`
+    : `/posts/${encodeURIComponent(postId)}/comments`
+  const response = await api.post(endpoint, { body })
+  return unwrapResponse(response)
+}
+
+export async function voteComment(commentId, value) {
+  const response = await api.post(`/comments/${encodeURIComponent(commentId)}/vote`, { value })
   return unwrapResponse(response)
 }

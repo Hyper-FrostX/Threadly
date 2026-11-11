@@ -441,14 +441,14 @@ export const sampleComments = [
 export const sampleNotifications = [
   {
     id: 'n1',
-    title: 'aisha replied in t/travel',
+    title: 'Aisha replied in Travel',
     body: 'The Konkan coast at the end of monsoon season.',
     createdAt: '2026-11-02T11:20:00.000Z',
     unread: true,
   },
   {
     id: 'n2',
-    title: 'Your post is trending in t/football',
+    title: 'Your post is trending in Football',
     body: 'Who do you think will dominate European football this season?',
     createdAt: '2026-11-02T09:40:00.000Z',
     unread: true,

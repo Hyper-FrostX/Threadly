@@ -1,47 +1,74 @@
-import { users } from '../data/sampleData.js'
+import { followsRepository, usersRepository } from '../repositories/platformRepository.js'
 import { httpError } from '../utils/httpError.js'
+import { createNotification } from './notificationService.js'
 
-export function publicUser(user) {
+export function publicUser(user, viewerId) {
   if (!user) return null
-  const { following, ...profile } = user
-  return { ...profile, followingCount: following.length }
+  const { passwordHash, email, preferences, ...profile } = user
+  const following = followsRepository.listForUser(user.id)
+  return {
+    ...profile,
+    followingCount: following.length,
+    followersCount: followsRepository.countByFollowed(user.id),
+    ...(viewerId ? { isFollowing: following.includes(viewerId) } : {}),
+  }
 }
 
-export function listUsers() {
-  return users.map(publicUser)
+export function listUsers(viewerId) {
+  return usersRepository.list().map((user) => publicUser(user, viewerId))
 }
 
 export function findUser(userId) {
-  const user = users.find((item) => item.id === userId || item.username === userId)
+  const user = usersRepository.find(userId)
   if (!user) throw httpError(404, 'USER_NOT_FOUND', 'User not found.')
   return user
 }
 
-export function getUserProfile(userId) {
-  return publicUser(findUser(userId))
+export function getUserProfile(userId, viewerId) {
+  return publicUser(findUser(userId), viewerId)
 }
 
 export function updateProfile(userId, updates) {
-  const user = findUser(userId)
-  for (const field of ['displayName', 'bio', 'location']) {
-    if (updates[field] !== undefined) user[field] = updates[field].trim()
+  findUser(userId)
+  const normalized = {}
+  for (const field of ['displayName', 'bio', 'location', 'avatarUrl', 'coverUrl']) {
+    if (updates[field] !== undefined) normalized[field] = updates[field].trim()
   }
-  return publicUser(user)
+  return publicUser(usersRepository.update(userId, normalized))
 }
 
 export function followUser(followerId, followedId) {
   if (followerId === followedId) {
     throw httpError(400, 'INVALID_FOLLOW', 'You cannot follow yourself.')
   }
-  const follower = findUser(followerId)
-  findUser(followedId)
-  if (!follower.following.includes(followedId)) follower.following.push(followedId)
+  const followed = findUser(followedId)
+  findUser(followerId)
+  followsRepository.add(followerId, followed.id)
+  const follower = usersRepository.find(followerId)
+  if (follower.id !== followed.id) {
+    createNotification({
+      userId: followed.id,
+      type: 'follow',
+      title: `${follower.displayName} started following you`,
+      targetUrl: `/profile/${follower.username}`,
+    })
+  }
   return publicUser(follower)
 }
 
 export function unfollowUser(followerId, followedId) {
-  const follower = findUser(followerId)
-  findUser(followedId)
-  follower.following = follower.following.filter((id) => id !== followedId)
-  return publicUser(follower)
+  findUser(followerId)
+  const followed = findUser(followedId)
+  followsRepository.remove(followerId, followed.id)
+  return publicUser(usersRepository.find(followerId))
+}
+
+export function getFollowers(userId) {
+  findUser(userId)
+  return followsRepository.listFollowers(userId).map((id) => publicUser(findUser(id)))
+}
+
+export function getFollowing(userId) {
+  findUser(userId)
+  return followsRepository.listForUser(userId).map((id) => publicUser(findUser(id)))
 }

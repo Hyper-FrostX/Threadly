@@ -15,24 +15,33 @@ export function validateBody(validator) {
 export const validators = {
   registration(body) {
     const errors = []
-    if (typeof body.username !== 'string' || body.username.trim().length < 3) {
-      errors.push({ field: 'username', message: 'Must be at least 3 characters.' })
+    if (typeof body.username !== 'string' || !/^[a-zA-Z0-9_]{3,32}$/.test(body.username.trim())) {
+      errors.push({ field: 'username', message: 'Use 3–32 letters, numbers, or underscores.' })
     }
     if (typeof body.email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
       errors.push({ field: 'email', message: 'Must be a valid email address.' })
     }
-    if (typeof body.password !== 'string' || body.password.length < 8) {
-      errors.push({ field: 'password', message: 'Must be at least 8 characters.' })
+    if (typeof body.displayName !== 'string' || body.displayName.trim().length < 1 || body.displayName.trim().length > 80) {
+      errors.push({ field: 'displayName', message: 'Must be between 1 and 80 characters.' })
+    }
+    if (typeof body.password !== 'string' || body.password.length < 8 || body.password.length > 72) {
+      errors.push({ field: 'password', message: 'Must be between 8 and 72 characters.' })
+    }
+    if (typeof body.confirmPassword !== 'string' || body.confirmPassword !== body.password) {
+      errors.push({ field: 'confirmPassword', message: 'Passwords do not match.' })
     }
     return errors
   },
   login(body) {
     const errors = []
-    if (typeof body.email !== 'string' || !body.email.trim()) {
-      errors.push({ field: 'email', message: 'Email is required.' })
+    if (typeof (body.identity || body.email || body.username) !== 'string' || !(body.identity || body.email || body.username).trim()) {
+      errors.push({ field: 'identity', message: 'Email or username is required.' })
     }
     if (typeof body.password !== 'string' || !body.password) {
       errors.push({ field: 'password', message: 'Password is required.' })
+    }
+    if (typeof body.password === 'string' && body.password.length > 72) {
+      errors.push({ field: 'password', message: 'Password is invalid.' })
     }
     return errors
   },
@@ -46,11 +55,14 @@ export const validators = {
         errors.push({ field, message: 'Must be a string.' })
       }
     }
-    if (body.displayName !== undefined && body.displayName.trim().length > 80) {
-      errors.push({ field: 'displayName', message: 'Must be 80 characters or fewer.' })
+    if (body.displayName !== undefined && (body.displayName.trim().length < 1 || body.displayName.trim().length > 80)) {
+      errors.push({ field: 'displayName', message: 'Must be between 1 and 80 characters.' })
     }
     if (body.bio !== undefined && body.bio.trim().length > 280) {
       errors.push({ field: 'bio', message: 'Must be 280 characters or fewer.' })
+    }
+    if (body.location !== undefined && body.location.trim().length > 100) {
+      errors.push({ field: 'location', message: 'Must be 100 characters or fewer.' })
     }
     return errors
   },

@@ -7,12 +7,17 @@ export function listPosts(req, res) {
     ...parsePostListQuery(req.query),
     communityId: req.query.communityId,
     authorId: req.query.authorId,
+    userId: req.auth?.userId,
   })
   return sendData(res, result.posts, 200, result.pagination)
 }
 
 export function getPost(req, res) {
-  return sendData(res, postService.getPost(req.params.postId))
+  return sendData(res, postService.getPost(req.params.postId, req.auth?.userId))
+}
+
+export function listSavedPosts(req, res) {
+  return sendData(res, postService.listSavedPosts(req.auth.userId))
 }
 
 export function createPost(req, res) {

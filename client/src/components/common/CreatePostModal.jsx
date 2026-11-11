@@ -21,7 +21,7 @@ export default function CreatePostModal() {
       return
     }
     try {
-      const post = createPost({ communityId: selectedCommunityId, title, body, image: image.trim() || null })
+      const post = await createPost({ communityId: selectedCommunityId, title, body, image: image.trim() || null })
       if (!post) return
       setCreatePostOpen(false)
       navigate(`/post/${post.id}`)
@@ -37,7 +37,7 @@ export default function CreatePostModal() {
           Community
           <select className="form-control" value={selectedCommunityId} onChange={(event) => setCommunityId(event.target.value)} required>
             <option value="">Choose a community</option>
-            {communities.map((item) => <option key={item.id || item.name} value={item.id || item.name}>t/{item.name}</option>)}
+            {communities.map((item) => <option key={item.id || item.name} value={item.id || item.name}>{item.title || item.name}</option>)}
           </select>
         </label>
         <label className="form-label">

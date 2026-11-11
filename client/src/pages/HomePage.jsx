@@ -9,15 +9,17 @@ const dateLabel = new Intl.DateTimeFormat('en', { weekday: 'long', month: 'long'
   .toUpperCase()
 
 export default function HomePage() {
-  const { currentUser, users, setCreatePostOpen } = useThreadly()
+  const { currentUser, users, communities, setCreatePostOpen } = useThreadly()
   const profile = users.find((user) => user.username === currentUser.username) || currentUser
+  const joinedCount = communities.filter((community) => community.joined).length
   return (
     <div className="space-y-5">
-      <section className="page-heading">
+      <section className="home-welcome page-heading">
         <div>
           <p className="eyebrow">{dateLabel}</p>
-          <h1 className="mt-1 text-[26px] font-extrabold tracking-[-0.04em]">Your community, in the loop.</h1>
-          <p className="mt-1 text-sm text-muted">The conversations you care about, all in one place.</p>
+          <h1 className="mt-2 max-w-lg text-[26px] font-extrabold leading-tight tracking-[-0.045em] sm:text-[30px]">A little more of what brings us together.</h1>
+          <p className="mt-2 max-w-lg text-sm leading-6 text-muted">Fresh ideas from the spaces you care about, gathered in one thoughtful feed.</p>
+          <p className="mt-4 text-xs font-semibold text-primary">{joinedCount} {joinedCount === 1 ? 'space' : 'spaces'} in your orbit</p>
         </div>
         <HealthBadge />
       </section>

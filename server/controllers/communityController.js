@@ -1,12 +1,12 @@
 import * as communityService from '../services/communityService.js'
 import { sendData } from '../utils/response.js'
 
-export function listCommunities(_req, res) {
-  return sendData(res, communityService.listCommunities())
+export function listCommunities(req, res) {
+  return sendData(res, communityService.listCommunities(req.auth?.userId))
 }
 
 export function getCommunity(req, res) {
-  return sendData(res, communityService.getCommunity(req.params.communityId))
+  return sendData(res, communityService.getCommunity(req.params.communityId, req.auth?.userId))
 }
 
 export function createCommunity(req, res) {
